@@ -2,12 +2,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "list.h"
 #include "queue.h"
 
 /* Create an empty queue */
 struct list_head *q_new()
 {
-    return NULL;
+    struct list_head *head = malloc(sizeof(struct list_head));
+    if (!head)
+        return NULL;
+
+    INIT_LIST_HEAD(head);
+    return head;
 }
 
 /* Free all storage used by queue */
@@ -16,6 +22,25 @@ void q_free(struct list_head *head) {}
 /* Insert an element at head of queue */
 bool q_insert_head(struct list_head *head, char *s)
 {
+    if (!head || !s)
+        return false;
+
+    // 配置 element 記憶體位置
+    element_t *new_elem = malloc(sizeof(element_t));
+    if (!new_elem)
+        return false;
+
+    // 賦予 element 值
+    // https://www.geeksforgeeks.org/strdup-strdndup-functions-c/
+    new_elem->value = strdup(s);
+    if (!new_elem->value) {
+        free(new_elem);
+        return false;
+    }
+
+    // Insert the element to head
+    list_add(&new_elem->list, head);
+
     return true;
 }
 
@@ -28,7 +53,29 @@ bool q_insert_tail(struct list_head *head, char *s)
 /* Remove an element from head of queue */
 element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
-    return NULL;
+    // 若沒有 list 或是 list 是 empty queue
+    if (!head || list_empty(head))
+        return NULL;
+
+    // Get the element_t containing the first list_head node
+    struct list_head *to_remove = head->next;
+    element_t *elem = container_of(to_remove, element_t, list);
+
+    /* Copy string to buffer if provided */
+    if (sp && bufsize > 0) {
+        strncpy(sp, elem->value, bufsize - 1);
+        sp[bufsize - 1] = '\0'; /* Ensure null-termination */
+    }
+
+    list_del(to_remove);
+    // head->next = to_remove->next;
+    // to_remove->next->prev = head;
+
+    /* Isolate the removed node */
+    to_remove->next = NULL;
+    to_remove->prev = NULL;
+
+    return elem;
 }
 
 /* Remove an element from tail of queue */
@@ -40,7 +87,15 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 /* Return number of elements in queue */
 int q_size(struct list_head *head)
 {
-    return -1;
+    if (!head)
+        return 0;
+
+    int len = 0;
+    struct list_head *li;
+
+    list_for_each(li, head)
+        len++;
+    return len;
 }
 
 /* Delete the middle node in queue */
