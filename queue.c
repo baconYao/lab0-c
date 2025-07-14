@@ -17,7 +17,29 @@ struct list_head *q_new()
 }
 
 /* Free all storage used by queue */
-void q_free(struct list_head *head) {}
+void q_free(struct list_head *head)
+{
+    if (!head) {
+        return;
+    }
+
+    //  Method 1: list_for_each_entry_safe
+    // element_t *item = NULL, *tmp = NULL;
+    // list_for_each_entry_safe(item, tmp, head, list) {
+    //     free(item->value);
+    //     free(item);
+    // }
+
+    //  Method 2: list_for_each_safe
+    struct list_head *pos, *n;
+    list_for_each_safe(pos, n, head) {
+        element_t *elem = container_of(pos, element_t, list);
+        free(elem->value);
+        free(elem);
+    }
+
+    free(head);
+}
 
 /* Insert an element at head of queue */
 bool q_insert_head(struct list_head *head, char *s)
@@ -68,8 +90,6 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
     }
 
     list_del(to_remove);
-    // head->next = to_remove->next;
-    // to_remove->next->prev = head;
 
     /* Isolate the removed node */
     to_remove->next = NULL;
