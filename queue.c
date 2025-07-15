@@ -69,6 +69,26 @@ bool q_insert_head(struct list_head *head, char *s)
 /* Insert an element at tail of queue */
 bool q_insert_tail(struct list_head *head, char *s)
 {
+    if (!head || !s) {
+        return false;
+    }
+
+    // 配置 element 記憶體位置
+    element_t *new_elem = malloc(sizeof(element_t));
+    if (!new_elem)
+        return false;
+
+    // 賦予 element 值
+    // https://www.geeksforgeeks.org/strdup-strdndup-functions-c/
+    new_elem->value = strdup(s);
+    if (!new_elem->value) {
+        free(new_elem);
+        return false;
+    }
+
+    // Insert the element to tail
+    list_add_tail(&new_elem->list, head);
+
     return true;
 }
 
@@ -101,7 +121,24 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 /* Remove an element from tail of queue */
 element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 {
-    return NULL;
+    // 若沒有 list 或是 list 是 empty queue
+    if (!head || list_empty(head))
+        return NULL;
+
+
+    // Get the element_t containing the end of list_head node
+    struct list_head *to_remove = head->prev;
+    element_t *elem = container_of(to_remove, element_t, list);
+
+    /* Copy string to buffer if provided */
+    if (sp && bufsize > 0) {
+        strncpy(sp, elem->value, bufsize - 1);
+        sp[bufsize - 1] = '\0'; /* Ensure null-termination */
+    }
+
+    list_del_init(to_remove);
+
+    return elem;
 }
 
 /* Return number of elements in queue */
