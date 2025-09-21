@@ -241,21 +241,31 @@ void q_swap(struct list_head *head)
     if (!head || list_empty(head) || list_is_singular(head))
         return;
 
-    struct list_head *cur, *next;
-    cur = head->next;
-    while (cur != head && cur->next != head) {
-        next = cur->next;
-
-        cur->prev->next = next;
-        next->next->prev = cur;
-
-        cur->next = next->next;
-        next->prev = cur->prev;
-        cur->prev = next;
-        next->next = cur;
-
-        cur = cur->next;
+    // More elegant way
+    struct list_head *curr;
+    for (curr = head->next; curr != head && curr->next != head;
+         curr = curr->next) {
+        struct list_head *next;
+        next = curr->next;
+        list_move(curr, next);
     }
+
+    // // Intuitive way
+    // struct list_head *cur, *next;
+    // cur = head->next;
+    // while (cur != head && cur->next != head) {
+    //     next = cur->next;
+
+    //     cur->prev->next = next;
+    //     next->next->prev = cur;
+
+    //     cur->next = next->next;
+    //     next->prev = cur->prev;
+    //     cur->prev = next;
+    //     next->next = cur;
+
+    //     cur = cur->next;
+    // }
 }
 
 /* Reverse elements in queue */
