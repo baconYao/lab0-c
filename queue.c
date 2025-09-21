@@ -5,6 +5,11 @@
 #include "list.h"
 #include "queue.h"
 
+void _quick_sort(struct list_head *left, struct list_head *right);
+
+struct list_head *_quick_sort_partition(struct list_head *left,
+                                        struct list_head *right);
+
 /* Create an empty queue */
 struct list_head *q_new()
 {
@@ -290,7 +295,54 @@ void q_reverseK(struct list_head *head, int k)
 }
 
 /* Sort elements of queue in ascending/descending order */
-void q_sort(struct list_head *head, bool descend) {}
+void q_sort(struct list_head *head, bool descend)
+{
+    if (!head || list_empty(head) || list_is_singular(head))
+        return;
+
+    _quick_sort(head->next, head->prev);
+    if (descend) {
+        q_reverse(head);
+    }
+}
+
+// sort the link list in ascending
+void _quick_sort(struct list_head *left, struct list_head *right)
+{
+    if (left && left != right && left != right->next) {
+        struct list_head *pivot = _quick_sort_partition(left, right);
+        _quick_sort(left, pivot->prev);
+        _quick_sort(pivot->next, right);
+    }
+}
+
+struct list_head *_quick_sort_partition(struct list_head *left,
+                                        struct list_head *right)
+{
+    element_t *pivot = list_entry(right, element_t, list);
+    struct list_head *partition_index = left;
+
+    for (struct list_head *curr = left; curr != right; curr = curr->next) {
+        element_t *elem = list_entry(curr, element_t, list);
+        if (strcmp(elem->value, pivot->value) < 0) {
+            // swap string pointers
+            element_t *ei = list_entry(partition_index, element_t, list);
+            char *tmp = ei->value;
+            ei->value = elem->value;
+            elem->value = tmp;
+            // move partition index
+            partition_index = partition_index->next;
+        }
+    }
+    // swap string pointers between pivot and partition_index
+    element_t *ei = list_entry(partition_index, element_t, list);
+    char *tmp = ei->value;
+    ei->value = pivot->value;
+    pivot->value = tmp;
+
+    return partition_index;
+}
+
 
 /* Remove every node which has a node with a strictly less value anywhere to
  * the right side of it */
