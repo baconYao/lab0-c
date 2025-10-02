@@ -288,10 +288,72 @@ void q_reverse(struct list_head *head)
     }
 }
 
+// Fixme: 此做法有問題
+// /* Reverse the nodes of the list k at a time */
+// void q_reverseK(struct list_head *head, int k)
+// {
+//     if (!head || list_empty(head) || list_is_singular(head))
+//         return;
+
+//     struct list_head *start = head->next, *end, *tracker;
+
+//     while (1) {
+//         end = start;
+
+//         // 找 k 個節點
+//         for (int i = 1; i < k; i++) {
+//             end = end->next;
+//             if (end == head)
+//                 return;  // 不足 k 個
+//         }
+
+//         tracker = end->next;
+
+//         // 建立一個暫時的 list head
+//         struct list_head tmp;
+//         INIT_LIST_HEAD(&tmp);
+//         // 把 [head->next .. end] 切出來
+//         list_cut_position(&tmp, start, end);
+//         // 反轉 tmp list
+//         q_reverse(&tmp);
+//         // 把反轉後的元素一個個搬回 tracker 之前的節點的後面
+//         struct list_head *pos, *n;
+//         list_for_each_safe(pos, n, &tmp) {
+//             list_move(pos, tracker->prev);
+//         }
+
+//         start = tracker;
+//     }
+// }
+
 /* Reverse the nodes of the list k at a time */
 void q_reverseK(struct list_head *head, int k)
 {
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
+    if (!head || list_empty(head) || list_is_singular(head))
+        return;
+
+    struct list_head *start = head->next, *end, *tracker;
+
+    while (start != head) {
+        end = start;
+        // Try to find k elements
+        for (int i = 0; i < k - 1; i++) {
+            end = end->next;
+            if (end == head) {
+                return;
+            }
+        }
+        // Update the tracker to be the next start element of linked list
+        tracker = end->next;
+        // Reverse the [start -> ... -> ... -> end] elements
+        struct list_head *curr, *tmp_head = start->prev;
+        for (curr = start->next; curr != tracker; curr = start->next) {
+            list_move(curr, tmp_head);
+        }
+        // Update pointer for the next group
+        start = tracker;
+    }
 }
 
 /* Sort elements of queue in ascending/descending order */
