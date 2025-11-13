@@ -444,7 +444,33 @@ int q_ascend(struct list_head *head)
 int q_descend(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+
+    if (q_size(head) == 1) {
+        return 1;
+    }
+
+    struct list_head *cur = head->prev;
+    const element_t *elem = list_entry(cur, element_t, list);
+    const char *max_str = elem->value;  // max_str 指向的內容不能被修改 (const
+                                        // 才能讓靜態分析工具檢查通過)
+
+    // Iterate the list in reverse way
+    while (cur->prev != head) {
+        element_t *tmp = list_entry(cur->prev, element_t, list);
+        // cur value is greater then its previous node's value
+        if (strcmp(max_str, tmp->value) > 0) {
+            list_del(cur->prev);
+            free(tmp->value);
+            free(tmp);
+        } else {
+            max_str = tmp->value;
+            cur = cur->prev;
+        }
+    }
+
+    return q_size(head);
 }
 
 /* Merge all the queues into one sorted queue, which is in ascending/descending
