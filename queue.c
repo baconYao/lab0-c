@@ -411,7 +411,32 @@ struct list_head *_quick_sort_partition(struct list_head *left,
 int q_ascend(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+
+    if (q_size(head) == 1) {
+        return 1;
+    }
+
+    struct list_head *cur = head->prev;
+    const element_t *elem = list_entry(cur, element_t, list);
+    const char *min_str = elem->value;  // min_str 指向的內容不能被修改 (const
+                                        // 才能讓靜態分析工具檢查通過)
+
+    // Iterate the list in reverse way
+    while (cur->prev != head) {
+        element_t *tmp = list_entry(cur->prev, element_t, list);
+        if (strcmp(min_str, tmp->value) < 0) {
+            list_del(cur->prev);
+            free(tmp->value);
+            free(tmp);
+        } else {
+            min_str = tmp->value;
+            cur = cur->prev;
+        }
+    }
+
+    return q_size(head);
 }
 
 /* Remove every node which has a node with a strictly greater value anywhere to
